@@ -4,8 +4,8 @@ const useWordle = (solution) => {
 
     const [turn, setTurn] = useState(0) //max 6
     const [currentGuess, setCurrentGuess] = useState('')
-    const [guesses, setGuesses] = useState([]) // each guess is an array
-    const [history, setHistory] = useState(['ninja']) // each guess is a string
+    const [guesses, setGuesses] = useState([...Array(6)]) // each guess is an array
+    const [history, setHistory] = useState([]) // each guess is a string
     const [isCorrect, setIsCorrect] = useState(false)
 
     //format a guess into an array of letter objects
@@ -19,7 +19,7 @@ const useWordle = (solution) => {
         //find any green letters (leters in right position)
         formattedGuess.forEach((letter, i) => {
             if (solutionArray[i] === letter.key) {
-                formatGuess[i].color = 'green';
+                formattedGuess[i].color = 'green';
                 solutionArray[i] = null; // not to check it again 
             }
         })
@@ -31,13 +31,32 @@ const useWordle = (solution) => {
                 solutionArray[solutionArray.indexOf(letter.key)] = null;
             }
         })
+
+        return formattedGuess
     }
 
-    //add a new guess to the guesses state
     //update the isCorrect state is the guess is correct
-    //add one to the turn state
-    const addNewGuess = () => {
+    //OR add a new guess to the guesses state and add one to the turn state
+    const addNewGuess = (formattedGuess) => {
+        if (currentGuess === solution) {
+            setIsCorrect(true) //win the game
+        }
 
+        setGuesses((prevGuesses) => {
+            let newGuesses = [...prevGuesses];
+            newGuesses[turn] = formattedGuess;
+            return newGuesses
+        })
+
+        setHistory((prevHistory) => {
+            return [...prevHistory, currentGuess]
+        })
+
+        setTurn((prevTurn) => {
+            return prevTurn + 1
+        })
+
+        setCurrentGuess('')
     }
 
     //handle keyup event & track current guess
@@ -61,7 +80,8 @@ const useWordle = (solution) => {
                 console.log('word must be 5 chars long')
                 return
             }
-            formatGuess()
+            const formatted = formatGuess()
+            addNewGuess(formatted)
         }
 
         //is user hits Backspace, delete last character from currentGuess
